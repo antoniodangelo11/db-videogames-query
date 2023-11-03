@@ -16,7 +16,7 @@ SELECT
 
 3) select *
    from players p
-   where name like "%a";
+   where name like '%a';
 
 4- Selezionare tutte le recensioni scritte dal giocatore con ID = 800 (11)
 
@@ -40,7 +40,8 @@ SELECT
 
 7) select distinct videogame_id
    from category_videogame cv
-   where category_id = 2 or category_id = 6 order by videogame_id;
+   where category_id = 2 or category_id = 6
+   order by videogame_id;
 
 8- Selezionare tutte le recensioni con voto compreso tra 2 e 4 (2947)
 
@@ -64,7 +65,16 @@ SELECT
 
 11- Selezionare il numero e la media delle recensioni per il videogioco con ID = 412 (review number = 12, avg_rating = 3.16 circa)
 
+11) select count(*), round(avg(rating), 2)
+    from reviews r
+    where videogame_id = 412;
+
 12- Selezionare il numero di videogame che la software house con ID = 1 ha rilasciato nel 2018 (13)
+
+12) select count(*)
+    from videogames v
+    where software_house_id = 1 and year(release_date) = 2018;
+
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -118,9 +128,9 @@ JOIN
 
 1- Selezionare i dati di tutti giocatori che hanno scritto almeno una recensione, mostrandoli una sola volta (996)
 
-1) select distinct player_id
+1) select distinct p.*
    from players p
-   join reviews;
+   inner join reviews r on p.id = r.player_id;
 
 2- Sezionare tutti i videogame dei tornei tenuti nel 2016, mostrandoli una sola volta (226)
 
@@ -144,22 +154,45 @@ JOIN
 
 5- Selezionare i premi ricevuti da ogni software house per i videogiochi che ha prodotto (55)
 
-5) select sh.name, a.name
-   from software_houses sh
-   join videogames v on sh.id = v.software_house_id
-   join award_videogame av on v.id = av.videogame_id
-   join awards a on av.award_id = a.id;
+5) select software_houses.name, videogames.name as videogame_name, awards.name as award_name
+   from software_houses
+   join videogames ON software_houses.id = videogames.software_house_id
+   join award_videogame ON videogames.id = award_videogame.videogame_id
+   join awards ON award_videogame.award_id = awards.id;
 
 6- Selezionare categorie e classificazioni PEGI dei videogiochi che hanno ricevuto recensioni da 4 e 5 stelle, mostrandole una sola volta (3363)
-6)
+
+6) select distinct categories.name, pegi_labels.name as pegi_label_name, videogames.name as videogame_name
+   fromreviews
+   join videogames ON reviews.videogame_id = videogames.id
+   join pegi_label_videogame ON videogames.id = pegi_label_videogame.videogame_id
+   join pegi_labels ON pegi_label_videogame.pegi_label_id = pegi_labels.id
+   join category_videogame ON videogames.id = category_videogame.videogame_id
+   join categories ON category_videogame.category_id = categories.id
+   where reviews.rating >= 4 AND reviews.rating <= 5;
 
 7- Selezionare quali giochi erano presenti nei tornei nei quali hanno partecipato i giocatori il cui nome inizia per 'S' (474)
-7)
+
+7) select distinct videogames.name as videogames_name
+   from players
+   join player_tournament ON players.id = player_tournament.player_id
+   join tournaments ON player_tournament.tournament_id = tournaments.id
+   join tournament_videogame ON tournaments.id = tournament_videogame.tournament_id
+   join videogames ON tournament_videogame.videogame_id = videogames.id
+   where players.name LIKE 'S%';
 
 8- Selezionare le città in cui è stato giocato il gioco dell'anno del 2018 (36)
-8)
+
+8) select p.city, v.name, av.`year`
+   from awards a
+   join award_videogame av on av.award_id = a.id
+   join videogames v on av.videogame_id = v.id
+   join reviews r on r.videogame_id = v.id
+   join players p on r.player_id = p.id
+   where av.year = 2018 and a.name = 'Gioco dell''anno';
 
 9- Selezionare i giocatori che hanno giocato al gioco più atteso del 2018 in un torneo del 2019 (3306)
+
 9)
 
 
